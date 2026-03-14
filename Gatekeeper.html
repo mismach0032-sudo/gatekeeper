@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The J-Frame | Gatekeeper</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --container-bg: #161b22;
+            --text-main: #c9d1d9;
+            --text-muted: #8b949e;
+            --accent-blue: #58a6ff;
+            --accent-green: #3fb950;
+            --accent-red: #f85149;
+            --accent-yellow: #d29922;
+            --border-color: #30363d;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 32px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        h1 span.subtitle {
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: normal;
+        }
+
+        .description {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .question-block {
+            background-color: rgba(13, 17, 23, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .question-block.active {
+            border-color: var(--accent-blue);
+            background-color: rgba(88, 166, 255, 0.05);
+        }
+
+        .question-block.passed {
+            border-color: var(--accent-green);
+            opacity: 0.7;
+        }
+
+        .question-block.failed {
+            border-color: var(--accent-red);
+        }
+
+        .question-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 12px;
+            margin-right: 12px;
+            font-weight: bold;
+        }
+
+        .tag-r { background-color: rgba(63, 185, 80, 0.1); color: var(--accent-green); border: 1px solid var(--accent-green); }
+        .tag-s { background-color: rgba(210, 153, 34, 0.1); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+        .tag-exec { background-color: rgba(88, 166, 255, 0.1); color: var(--accent-blue); border: 1px solid var(--accent-blue); }
+
+        .btn-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            transition: all 0.2s;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--border-color);
+        }
+
+        button.btn-yes:hover:not(:disabled) {
+            border-color: var(--accent-green);
+            color: var(--accent-green);
+        }
+
+        button.btn-no:hover:not(:disabled) {
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result-panel {
+            display: none;
+            margin-top: 24px;
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .result-panel.success {
+            display: block;
+            background-color: rgba(63, 185, 80, 0.1);
+            border: 1px solid var(--accent-green);
+        }
+        
+        .result-panel.success h2 {
+            color: var(--accent-green);
+            margin-top: 0;
+        }
+
+        .result-panel.fail {
+            display: block;
+            background-color: rgba(248, 81, 73, 0.1);
+            border: 1px solid var(--accent-red);
+        }
+
+        .result-panel.fail h2 {
+            color: var(--accent-red);
+            margin-top: 0;
+        }
+
+        .reset-btn {
+            margin-top: 16px;
+            background-color: transparent;
+            border: 1px solid var(--text-muted);
+            color: var(--text-muted);
+            width: auto;
+            padding: 8px 16px;
+        }
+
+        .reset-btn:hover {
+            color: var(--text-main);
+            border-color: var(--text-main);
+        }
+
+        #calculator {
+            display: none;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-group {
+            margin-bottom: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .input-group label {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        .input-group input, .input-group select {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 8px 12px;
+            border-radius: 4px;
+            width: 150px;
+            font-size: 14px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .timeframe-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px dashed var(--border-color);
+        }
+
+        .tf-btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 13px;
+            background-color: var(--container-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tf-btn.active {
+            background-color: rgba(88, 166, 255, 0.1);
+            border-color: var(--accent-blue);
+            color: var(--accent-blue);
+            font-weight: bold;
+        }
+
+        .tf-desc {
+            font-size: 11px;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        .sync-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .trade-card {
+            background-color: rgba(13, 17, 23, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+        }
+
+        .trade-card.pending {
+            border-left: 3px solid var(--accent-yellow);
+        }
+
+        .trade-card.completed {
+            border-left: 3px solid var(--accent-green);
+        }
+
+        .trade-card .trade-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .trade-card .trade-symbol {
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        .trade-card .trade-status {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+
+        .trade-card .trade-detail {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .trade-card .screenshot-link {
+            display: inline-block;
+            margin-top: 6px;
+            font-size: 12px;
+            color: var(--accent-blue);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+
+<div style="position: absolute; top: 20px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; z-index: 100;">
+    <button id="tab-entry" style="background-color: var(--accent-blue); color: #fff; width: 140px; border:none;" onclick="switchTab('entry')">エントリー審査</button>
+    <button id="tab-result" style="background-color: var(--bg-color); color: var(--text-muted); width: 140px; border-color: var(--border-color);" onclick="switchTab('result')">ジャーナル</button>
+</div>
+
+<!-- ===== ENTRY TAB ===== -->
+<div class="container" id="entry-container" style="margin-top: 60px;">
+    <h1>The J-Frame <span>Node Gatekeeper</span></h1>
+    <p class="description">
+        感情と裁量を排除し、構造を実行せよ。<br>
+        すべての関門を突破しない限り、エントリーは許可されない。<br>
+        <strong>※The J-Frameは「R3（第3波）」のみを狙う。第5波は絶対禁止。</strong>
+    </p>
+
+    <!-- Timeframe Selection -->
+    <div class="timeframe-selector">
+        <div class="tf-btn active" id="tf-model-a" onclick="selectTimeframe('A')">
+            <div>LRS Model</div>
+            <div class="tf-desc">L: H1 / R: M15 / S: M5</div>
+        </div>
+    </div>
+
+    <!-- Q1 -->
+    <div class="question-block active" id="qb1">
+        <div class="question-title" id="q1-text">
+            <span class="tag tag-r" id="q1-tag">M15(R波)</span>
+            1. 意味ある価格からの反発で、下位足ダウ転換を伴う「R1」が発生したか？
+        </div>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="answer(1, true)">YES (R1認定)</button>
+            <button class="btn-no" onclick="answer(1, false)">NO (未確認・基準外)</button>
+        </div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="question-block" id="qb2" style="opacity: 0.5; pointer-events: none;">
+        <div class="question-title" id="q2-text">
+            <span class="tag tag-r" id="q2-tag">M15(R波)</span>
+            2. R1に対する2波調整が、フィボ50〜61.8の候補帯に入ったか？
+        </div>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="answer(2, true)">YES (Fibo到達)</button>
+            <button class="btn-no" onclick="answer(2, false)">NO (未達・浅い)</button>
+        </div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="question-block" id="qb3" style="opacity: 0.5; pointer-events: none;">
+        <div class="question-title" id="q3-text">
+            <span class="tag tag-s" id="q3-tag">M5(S波)</span>
+            3. 2波内部の短期逆行ラインを実体抜けし、かつS波ダウ転換が確定したか？
+        </div>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="answer(3, true)">YES (2波崩れ確定)</button>
+            <button class="btn-no" onclick="answer(3, false)">NO (継続中・ヒゲのみ)</button>
+        </div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="question-block" id="qb4" style="opacity: 0.5; pointer-events: none;">
+        <div class="question-title">
+            <span class="tag tag-exec">実行</span>
+            4. S波ダウ転換の根本にSLを置いた時、RR 1:1 が確実に取れる距離はあるか？
+        </div>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="answer(4, true)">YES (確保可能)</button>
+            <button class="btn-no" onclick="answer(4, false)">NO (余地なし)</button>
+        </div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="question-block" id="qb5" style="opacity: 0.5; pointer-events: none;">
+        <div class="question-title">
+            <span class="tag tag-exec">実行</span>
+            5. 指標前や乱高下などのNG要素はなく、迷いなく実行できるか？
+        </div>
+        <div class="btn-group">
+            <button class="btn-yes" onclick="answer(5, true)">YES (実行可)</button>
+            <button class="btn-no" onclick="answer(5, false)">NO (不安あり)</button>
+        </div>
+    </div>
+
+    <!-- Result Panels -->
+    <div id="result-success" class="result-panel">
+        <h2>🔥 承認：構造を実行せよ。</h2>
+        <p>すべての条件が揃った。期待を手放し、SLとTPを置いて天に委ねろ。</p>
+        <button class="reset-btn" onclick="showCalculator()" style="border-color: var(--accent-green); color: var(--accent-green);">ロット計算へ進む</button>
+    </div>
+
+    <div id="result-fail" class="result-panel">
+        <h2>🚫 拒絶：エントリー不可。</h2>
+        <p id="fail-reason">理由は明白だ。構造から逸脱している。</p>
+        <button class="reset-btn" onclick="resetForm()">最初からやり直す</button>
+    </div>
+
+    <!-- Calculator Panel -->
+    <div id="calculator">
+        <h3 style="margin-top:0; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">ポジション・サイジング</h3>
+        <div class="input-group">
+            <label>口座資金 (円)</label>
+            <input type="number" id="capital" value="1000000" oninput="calcLot()">
+        </div>
+        <div class="input-group">
+            <label>許容リスク (%)</label>
+            <input type="number" id="risk-pct" value="1.0" step="0.1" oninput="calcLot()">
+        </div>
+        <div class="input-group">
+            <label>SLまでのpips</label>
+            <input type="number" id="sl-pips" placeholder="例: 10" oninput="calcLot()">
+        </div>
+        <div class="input-group">
+            <label>監視通貨ペア</label>
+            <select id="currency-pair">
+                <option value="USDJPY">USDJPY</option>
+                <option value="EURJPY">EURJPY</option>
+                <option value="EURUSD">EURUSD</option>
+            </select>
+        </div>
+        <div style="background-color: rgba(13,23,33,0.5); padding: 16px; border-radius: 4px; margin-top: 16px; text-align: center;">
+            <div style="font-size: 14px; color: var(--text-muted);">推奨ロット数 (目安: 1lot=10万通貨想定)</div>
+            <div id="lot-result" style="font-size: 32px; font-weight: bold; color: var(--accent-blue); margin: 8px 0;">-- Lot</div>
+            <div id="risk-amount" style="font-size: 12px; color: var(--accent-red);">想定損失: -- 円</div>
+        </div>
+        <button class="reset-btn" style="width: 100%; margin-top: 16px; background-color: rgba(88, 166, 255, 0.1); border-color: var(--accent-blue); color: var(--accent-blue);" onclick="executeTradeRecord()">🚀 実行：ジャーナルに記録 & MT5自動連携開始</button>
+        <button class="reset-btn" style="width: 100%; margin-top: 8px;" onclick="resetForm()">キャンセル / リセット</button>
+    </div>
+
+</div>
+
+<!-- ===== JOURNAL TAB ===== -->
+<div class="container" id="result-container" style="display: none; margin-top: 60px;">
+    <h1>
+        The J-Frame <span>Journal</span>
+        <span class="sync-badge" id="sync-badge" style="background: rgba(63, 185, 80, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green);">● MT5 Auto-Sync</span>
+    </h1>
+    <p class="description">
+        MT5 Logger が決済を検知すると、損益・スクショが自動で統合されます。<br>
+        手動での振り返りメモもここから追加できます。
+    </p>
+
+    <!-- Live Trade Cards -->
+    <div id="trade-cards-area">
+        <div style="text-align: center; color: var(--text-muted); padding: 20px;">読み込み中...</div>
+    </div>
+
+    <!-- Manual Result Entry (Collapsible) -->
+    <details style="margin-top: 24px; border-top: 1px solid var(--border-color); padding-top: 16px;">
+        <summary style="cursor: pointer; color: var(--accent-blue); font-size: 14px; font-weight: 600;">＋ 手動で振り返りメモを追加</summary>
+        <div style="margin-top: 16px;">
+            <div class="input-group">
+                <label>対象トレード</label>
+                <select id="res-linked-trade" style="width: 100%;">
+                    <option value="">-- トレードを選択 --</option>
+                </select>
+            </div>
+    
+            <div class="input-group">
+                <label>結果 (Result)</label>
+                <select id="res-outcome" onchange="updateOutcomeStyle()">
+                    <option value="WIN">WIN (利確)</option>
+                    <option value="LOSS">LOSS (損切)</option>
+                    <option value="BE">BE (建値撤退)</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label>獲得/損失 pips</label>
+                <input type="number" id="res-pips" placeholder="例: 15.5">
+            </div>
+
+            <div class="input-group">
+                <label>実現RR</label>
+                <input type="number" id="res-rr" placeholder="例: 1.5" step="0.1">
+            </div>
+
+            <div style="margin-top: 16px;">
+                <label style="font-size: 14px; color: var(--text-muted); display: block; margin-bottom: 8px;">観測メモ (なぜ勝ったか/負けたか)</label>
+                <textarea id="res-note" rows="3" style="width: 100%; background-color: var(--bg-color); border: 1px solid var(--border-color); color: var(--text-main); padding: 8px; border-radius: 4px; box-sizing: border-box; resize: vertical;"></textarea>
+            </div>
+
+            <button class="reset-btn" id="btn-save-result" style="width: 100%; margin-top: 16px; background-color: rgba(63, 185, 80, 0.1); border-color: var(--accent-green); color: var(--accent-green);" onclick="saveManualNote()">📄 メモを保存</button>
+        </div>
+    </details>
+</div>
+
+<script>
+    // ===== CONFIG =====
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbwPcsEmC_R34sv1tbz5UlsEscIEeXOgA3OJlxvGGnadtbGRPZNL9RRl6PBtXQ8vmqdo/exec";
+
+    // ===== GATEKEEPER LOGIC =====
+    const reasons = {
+        1: "R1の定義（意味ある価格・反発・ダウ転換）を満たしていない。監視対象外だ。",
+        2: "フィボ50〜61.8の候補帯に入っていない。浅い押し戻しは捨てろ。待機だ。",
+        3: "ライン抜けとダウ転換の両方が揃っていない。2波崩れの証明がない。待て。",
+        4: "「RR 1:1」すら取れない位置で入るのはギャンブルだ。見送れ。",
+        5: "NG要素を含んでいるか、お前の心がブレている。休め。"
+    };
+
+    function selectTimeframe(model) {
+        // LRS Model only now
+        resetForm();
+    }
+
+    function answer(qNum, isYes) {
+        const currentBlock = document.getElementById(`qb${qNum}`);
+        
+        if (!isYes) {
+            currentBlock.classList.add('failed');
+            showFail(qNum);
+            disableAll();
+            return;
+        }
+
+        currentBlock.classList.remove('active');
+        currentBlock.classList.add('passed');
+        currentBlock.style.pointerEvents = 'none';
+
+        if (qNum < 5) {
+            const nextBlock = document.getElementById(`qb${qNum + 1}`);
+            nextBlock.style.opacity = '1';
+            nextBlock.style.pointerEvents = 'auto';
+            nextBlock.classList.add('active');
+        } else {
+            showSuccess();
+        }
+    }
+
+    function showFail(qNum) {
+        document.getElementById('result-fail').classList.add('fail');
+        document.getElementById('fail-reason').innerText = reasons[qNum];
+    }
+
+    function showSuccess() {
+        document.getElementById('result-success').classList.add('success');
+    }
+
+    function disableAll() {
+        for (let i = 1; i <= 5; i++) {
+            document.getElementById(`qb${i}`).style.pointerEvents = 'none';
+        }
+    }
+
+    function resetForm() {
+        document.getElementById('result-success').classList.remove('success');
+        document.getElementById('result-fail').classList.remove('fail');
+        document.getElementById('calculator').style.display = 'none';
+        
+        for (let i = 1; i <= 5; i++) {
+            const block = document.getElementById(`qb${i}`);
+            block.classList.remove('active', 'passed', 'failed');
+            if (i === 1) {
+                block.style.opacity = '1';
+                block.style.pointerEvents = 'auto';
+                block.classList.add('active');
+            } else {
+                block.style.opacity = '0.5';
+                block.style.pointerEvents = 'none';
+            }
+        }
+        document.getElementById('sl-pips').value = '';
+        document.getElementById('lot-result').innerText = '-- Lot';
+        document.getElementById('risk-amount').innerText = '想定損失: -- 円';
+    }
+
+    function showCalculator() {
+        document.getElementById('result-success').classList.remove('success');
+        document.getElementById('calculator').style.display = 'block';
+    }
+
+    function calcLot() {
+        const capital = parseFloat(document.getElementById('capital').value);
+        const riskPct = parseFloat(document.getElementById('risk-pct').value);
+        const slPips = parseFloat(document.getElementById('sl-pips').value);
+
+        if (isNaN(capital) || isNaN(riskPct) || isNaN(slPips) || slPips <= 0) {
+            document.getElementById('lot-result').innerText = '-- Lot';
+            document.getElementById('risk-amount').innerText = '想定損失: -- 円';
+            return;
+        }
+
+        const riskAmount = capital * (riskPct / 100);
+        const pipValuePerLot = 1000; 
+        let lots = riskAmount / (slPips * pipValuePerLot);
+        lots = Math.floor(lots * 100) / 100;
+
+        document.getElementById('lot-result').innerText = lots.toFixed(2) + ' Lot';
+        document.getElementById('lot-result').dataset.rawLots = lots.toFixed(2);
+        document.getElementById('risk-amount').innerText = `想定損失: ${Math.floor(riskAmount).toLocaleString()} 円`;
+    }
+
+    // ===== UNIFIED ENTRY RECORD =====
+    function executeTradeRecord() {
+        const capital = document.getElementById('capital').value;
+        const riskPct = document.getElementById('risk-pct').value;
+        const slPips = document.getElementById('sl-pips').value;
+        const lots = document.getElementById('lot-result').dataset.rawLots;
+        const currency = document.getElementById('currency-pair').value;
+
+        if (!lots || isNaN(parseFloat(lots))) {
+            alert("ロット計算を先に行ってください。（SLまでのpipsを入力）");
+            return;
+        }
+
+        const now = new Date();
+        const timestamp = now.getFullYear() + "-" + 
+            String(now.getMonth() + 1).padStart(2, '0') + "-" + 
+            String(now.getDate()).padStart(2, '0') + " " + 
+            String(now.getHours()).padStart(2, '0') + ":" + 
+            String(now.getMinutes()).padStart(2, '0');
+
+        const tradeData = {
+            id: timestamp.replace(/[: ]/g, ""),
+            time: timestamp,
+            currency: currency,
+            modelStr: "LRS(H1/M15/M5)",
+            capital: capital,
+            riskPct: riskPct,
+            slPips: slPips,
+            lots: lots
+        };
+
+        // LocalStorageにも保存
+        let activeTrades = JSON.parse(localStorage.getItem('jframe_active_trades')) || [];
+        activeTrades.push(tradeData);
+        localStorage.setItem('jframe_active_trades', JSON.stringify(activeTrades));
+
+        const successMsg = `✅ エントリー審査完了！\n\n${currency} : ${lots} Lot\n\nクラウドDBに「Pending」として記録しました。\nMT5で決済されると、損益・スクショが自動統合されます。`;
+
+        sendToGAS({
+            id: tradeData.id,
+            entryTime: tradeData.time,
+            currency: tradeData.currency,
+            modelStr: tradeData.modelStr,
+            lots: tradeData.lots,
+            slPips: tradeData.slPips
+        }, successMsg);
+
+        resetForm();
+    }
+
+    // ===== GAS COMMUNICATION =====
+    function sendToGAS(dataObj, successMsg) {
+        const formData = new URLSearchParams();
+        for (const key in dataObj) {
+            formData.append(key, dataObj[key]);
+        }
+
+        fetch(GAS_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        }).then(() => {
+            alert(successMsg);
+        }).catch(err => {
+            console.error(err);
+            alert("⚠️ 通信エラーが発生しましたが、デバイス内にはキャッシュ保存済みです。");
+        });
+    }
+
+    // ===== JOURNAL TAB - AUTO SYNC =====
+    function switchTab(tab) {
+        if (tab === 'entry') {
+            document.getElementById('entry-container').style.display = 'block';
+            document.getElementById('result-container').style.display = 'none';
+            document.getElementById('tab-entry').style.backgroundColor = 'var(--accent-blue)';
+            document.getElementById('tab-entry').style.color = '#fff';
+            document.getElementById('tab-result').style.backgroundColor = 'var(--bg-color)';
+            document.getElementById('tab-result').style.color = 'var(--text-muted)';
+        } else {
+            document.getElementById('entry-container').style.display = 'none';
+            document.getElementById('result-container').style.display = 'block';
+            document.getElementById('tab-result').style.backgroundColor = 'var(--accent-green)';
+            document.getElementById('tab-result').style.color = '#fff';
+            document.getElementById('tab-entry').style.backgroundColor = 'var(--bg-color)';
+            document.getElementById('tab-entry').style.color = 'var(--text-muted)';
+            
+            loadJournal();
+        }
+    }
+
+    function loadJournal() {
+        const area = document.getElementById('trade-cards-area');
+        
+        // まずLocalStorageから進行中トレードを表示
+        let activeTrades = JSON.parse(localStorage.getItem('jframe_active_trades')) || [];
+        
+        // GASからも最新データを取得 (doGet)
+        fetch(GAS_URL + "?action=recent")
+            .then(r => r.json())
+            .then(data => {
+                renderTradeCards(data, activeTrades);
+                loadLinkedTradeDropdown(activeTrades);
+            })
+            .catch(err => {
+                console.log("Cloud fetch failed, showing local data only:", err);
+                renderLocalCards(activeTrades);
+                loadLinkedTradeDropdown(activeTrades);
+            });
+    }
+
+    function renderTradeCards(cloudData, localTrades) {
+        const area = document.getElementById('trade-cards-area');
+        
+        if (cloudData.length === 0 && localTrades.length === 0) {
+            area.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">トレード記録はまだありません。</div>';
+            return;
+        }
+
+        let html = '';
+
+        // クラウドデータを逆順で表示（最新が上）
+        const reversed = [...cloudData].reverse();
+        for (const trade of reversed) {
+            const isPending = !trade.ExitTime && !trade.Outcome;
+            const isWin = trade.Outcome === 'WIN';
+            const isLoss = trade.Outcome === 'LOSS';
+            
+            let statusColor = 'var(--accent-yellow)';
+            let statusText = '⏳ 待機中（MT5決済待ち）';
+            let statusBg = 'rgba(210, 153, 34, 0.15)';
+            let cardClass = 'pending';
+
+            if (!isPending) {
+                cardClass = 'completed';
+                if (isWin) {
+                    statusColor = 'var(--accent-green)';
+                    statusText = '✅ WIN';
+                    statusBg = 'rgba(63, 185, 80, 0.15)';
+                } else if (isLoss) {
+                    statusColor = 'var(--accent-red)';
+                    statusText = '❌ LOSS';
+                    statusBg = 'rgba(248, 81, 73, 0.15)';
+                } else {
+                    statusColor = 'var(--text-muted)';
+                    statusText = '➖ BE';
+                    statusBg = 'rgba(139, 148, 158, 0.15)';
+                }
+            }
+
+            html += `
+            <div class="trade-card ${cardClass}">
+                <div class="trade-header">
+                    <span class="trade-symbol">${trade.Currency || '---'}</span>
+                    <span class="trade-status" style="background: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor};">${statusText}</span>
+                </div>
+                <div class="trade-detail">
+                    ${trade.EntryTime ? '📥 ' + trade.EntryTime : ''}
+                    ${trade.ExitTime ? ' → 📤 ' + trade.ExitTime : ''}
+                    ${trade.Lots ? ' | ' + trade.Lots + ' Lot' : ''}
+                    ${trade.Profit ? ' | ¥' + trade.Profit : ''}
+                    ${trade.Source === 'merged' ? ' <span style="color: var(--accent-green); font-size: 10px;">🔗 自動統合済</span>' : ''}
+                </div>
+                ${trade.ScreenshotURL ? '<a class="screenshot-link" href="' + trade.ScreenshotURL + '" target="_blank">📸 M15スクショを表示</a>' : ''}
+            </div>`;
+        }
+
+        area.innerHTML = html;
+    }
+
+    function renderLocalCards(localTrades) {
+        const area = document.getElementById('trade-cards-area');
+        if (localTrades.length === 0) {
+            area.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 20px;">トレード記録はまだありません。<br><span style="font-size: 12px;">（クラウドへ接続できませんでした）</span></div>';
+            return;
+        }
+
+        let html = '';
+        for (const trade of localTrades.reverse()) {
+            html += `
+            <div class="trade-card pending">
+                <div class="trade-header">
+                    <span class="trade-symbol">${trade.currency}</span>
+                    <span class="trade-status" style="background: rgba(210, 153, 34, 0.15); color: var(--accent-yellow); border: 1px solid var(--accent-yellow);">⏳ Pending</span>
+                </div>
+                <div class="trade-detail">📥 ${trade.time} | ${trade.lots} Lot | SL: ${trade.slPips}pips</div>
+            </div>`;
+        }
+        area.innerHTML = html;
+    }
+
+    function loadLinkedTradeDropdown(activeTrades) {
+        const select = document.getElementById('res-linked-trade');
+        select.innerHTML = '<option value="">-- トレードを選択 --</option>';
+        
+        activeTrades.forEach(trade => {
+            const option = document.createElement('option');
+            option.value = trade.id;
+            option.text = `[${trade.time}] ${trade.currency} (${trade.lots}Lot)`;
+            select.appendChild(option);
+        });
+    }
+
+    // ===== MANUAL NOTE SAVE =====
+    function saveManualNote() {
+        const linkedId = document.getElementById('res-linked-trade').value;
+        if (!linkedId) {
+            alert("対象トレードを選択してください。");
+            return;
+        }
+
+        const now = new Date();
+        const exitTime = now.getFullYear() + "-" + 
+            String(now.getMonth() + 1).padStart(2, '0') + "-" + 
+            String(now.getDate()).padStart(2, '0') + " " + 
+            String(now.getHours()).padStart(2, '0') + ":" + 
+            String(now.getMinutes()).padStart(2, '0');
+
+        const outcome = document.getElementById('res-outcome').value;
+        const pips = document.getElementById('res-pips').value || '0';
+        const rr = document.getElementById('res-rr').value || '0';
+        let note = document.getElementById('res-note').value || '';
+
+        const payload = {
+            id: linkedId,
+            exitTime: exitTime,
+            outcome: outcome,
+            pips: pips,
+            rr: rr,
+            note: note
+        };
+
+        // ローカルからも削除
+        let activeTrades = JSON.parse(localStorage.getItem('jframe_active_trades')) || [];
+        activeTrades = activeTrades.filter(t => t.id !== linkedId);
+        localStorage.setItem('jframe_active_trades', JSON.stringify(activeTrades));
+
+        sendToGAS(payload, `✅ メモ保存完了！\n\n[${outcome}] ${pips}pips / RR ${rr}\n\nジャーナルに統合しました。`);
+
+        // Reset fields
+        document.getElementById('res-pips').value = '';
+        document.getElementById('res-rr').value = '';
+        document.getElementById('res-note').value = '';
+        
+        setTimeout(() => loadJournal(), 1000);
+    }
+
+    function updateOutcomeStyle() {
+        const outcome = document.getElementById('res-outcome').value;
+        const btn = document.getElementById('btn-save-result');
+        if (outcome === 'WIN') {
+            btn.style.borderColor = 'var(--accent-green)';
+            btn.style.color = 'var(--accent-green)';
+            btn.style.backgroundColor = 'rgba(63, 185, 80, 0.1)';
+        } else if (outcome === 'LOSS') {
+            btn.style.borderColor = 'var(--accent-red)';
+            btn.style.color = 'var(--accent-red)';
+            btn.style.backgroundColor = 'rgba(248, 81, 73, 0.1)';
+        } else {
+            btn.style.borderColor = 'var(--text-muted)';
+            btn.style.color = 'var(--text-muted)';
+            btn.style.backgroundColor = 'transparent';
+        }
+    }
+
+</script>
+
+</body>
+</html>
