@@ -18,7 +18,7 @@ function doPost(e) {
   var sheet = ss.getSheetByName("TradeLog");
   if (!sheet) {
     sheet = ss.insertSheet("TradeLog");
-    sheet.appendRow(["ID","EntryTime","ExitTime","Currency","Model","Lots","SL_Pips","Outcome","Pips","RR","Profit","Note","ScreenshotURL","Source"]);
+    sheet.appendRow(["ID","エントリー日時","決済日時","通貨ペア","LRSモデル","判定ロット","SL幅(pips)","結果","獲得/損失pips","実現RR","実現損益","メモ","ScreenshotURL","Source"]);
   }
 
   var source = p.source || "gatekeeper";
